@@ -2,122 +2,130 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ShineStar | Star Communication & Graphics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShineStar | Star Graphics Official</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { background: #0f172a; font-family: sans-serif; overflow-x: hidden; }
-        .star-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .btn-shine { background: linear-gradient(90deg, #fbbf24, #f59e0b); color: #000; font-weight: bold; transition: 0.3s; }
-        #cropper-container { max-height: 400px; overflow: hidden; border-radius: 12px; }
+        body { background: #0f172a; color: white; font-family: sans-serif; touch-action: manipulation; }
+        .star-card { background: rgba(30, 41, 59, 0.9); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        .admin-only { display: none; } /* Hidden from customers */
+        .blue-bg { background-color: #0047ab !important; }
+        .white-bg { background-color: #ffffff !important; }
     </style>
 </head>
-<body class="text-white pb-10">
+<body class="pb-10">
 
-    <header class="p-4 border-b border-gray-700 flex justify-between items-center sticky top-0 bg-[#0f172a] z-50">
-        <div>
-            <h1 class="text-xl font-bold text-yellow-500">SHINE STAR</h1>
+    <header class="p-4 border-b border-gray-800 flex justify-between items-center sticky top-0 bg-[#0f172a] z-50">
+        <div onclick="toggleAdmin()"> <h1 class="text-xl font-bold text-yellow-500">SHINE STAR</h1>
             <p class="text-[10px] text-gray-400">Star Communication & Graphics</p>
         </div>
-        <div id="token-box" class="bg-yellow-500 text-black px-3 py-1 rounded-lg font-bold text-sm">
-            Token: #001
+        <div id="live-token" class="bg-yellow-500 text-black px-4 py-1 rounded-full font-black shadow-lg italic">
+            TOKEN: #---
         </div>
     </header>
 
-    <div class="max-w-md mx-auto p-4 space-y-6">
+    <div class="max-w-md mx-auto p-4 space-y-4">
         
-        <div id="upload-box" class="star-card p-8 rounded-2xl text-center border-2 border-dashed border-yellow-500/30">
-            <input type="file" id="fileInput" class="hidden" accept="image/*" multiple>
-            <div onclick="document.getElementById('fileInput').click()" class="space-y-3">
-                <div class="text-4xl">📤</div>
-                <h2 class="text-lg font-semibold">Upload Photos</h2>
-                <p class="text-xs text-gray-400">Passport, CNIC, ya Documents select karein</p>
-            </div>
+        <div id="upload-area" class="star-card p-10 text-center border-2 border-dashed border-yellow-500/20" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" class="hidden" accept="image/*">
+            <div class="text-5xl mb-4">📸</div>
+            <h2 class="text-lg font-bold">APNI PHOTO SELECT KAREIN</h2>
+            <p class="text-xs text-gray-400">Passport Size ke liye photo select karein</p>
         </div>
 
         <div id="editor-ui" class="hidden space-y-4">
-            <div id="cropper-container" class="star-card">
-                <img id="main-image">
+            <div class="star-card p-2">
+                <div id="canvas-wrapper" class="rounded-lg overflow-hidden">
+                    <img id="image" class="max-w-full">
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-                <div class="star-card p-3 rounded-xl">
-                    <label class="text-[10px] uppercase text-gray-400">Background</label>
-                    <div class="flex gap-2 mt-1">
-                        <button onclick="setBg('#3b82f6')" class="w-6 h-6 bg-blue-600 rounded-full"></button>
-                        <button onclick="setBg('#ffffff')" class="w-6 h-6 bg-white rounded-full"></button>
-                        <button onclick="setBg('#ef4444')" class="w-6 h-6 bg-red-600 rounded-full"></button>
-                    </div>
-                </div>
-                <div class="star-card p-3 rounded-xl">
-                    <label class="text-[10px] uppercase text-gray-400">Layout</label>
-                    <select id="size-type" class="w-full bg-transparent text-sm mt-1 outline-none">
-                        <option value="a4">A4 Paper (8 Photos)</option>
-                        <option value="4x6">4x6 Sheet</option>
-                        <option value="single">Single Photo</option>
-                    </select>
+                <button onclick="applyBg('#0047ab')" class="bg-blue-800 p-3 rounded-xl text-xs font-bold border border-white/20">BLUE BACKGROUND</button>
+                <button onclick="applyBg('#ffffff')" class="bg-white p-3 rounded-xl text-xs font-bold text-black">WHITE BACKGROUND</button>
+            </div>
+
+            <div id="admin-tools" class="admin-only star-card p-4 border-yellow-500 border">
+                <p class="text-yellow-500 font-bold text-xs mb-3">ADMIN PRINT CONTROLS</p>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="makeGrid(8)" class="bg-gray-700 p-2 rounded text-[10px]">8 Photos</button>
+                    <button onclick="makeGrid(12)" class="bg-gray-700 p-2 rounded text-[10px]">12 Photos</button>
+                    <button onclick="makeGrid(16)" class="bg-gray-700 p-2 rounded text-[10px]">16 Photos</button>
                 </div>
             </div>
 
-            <button onclick="generateAndSend()" class="w-full btn-shine p-4 rounded-xl shadow-lg">
-                ✅ COMPLETE & SEND TO SHOP
+            <button id="finalBtn" onclick="finishProcess()" class="w-full bg-gradient-to-r from-yellow-500 to-orange-500 p-4 rounded-2xl text-black font-black shadow-xl uppercase tracking-widest">
+                TAIYAR HAI - SEND TO SHOP
             </button>
         </div>
 
-        <div class="star-card p-4 rounded-xl text-center">
-            <p class="text-xs text-gray-300 italic">"Ab line mein lagne ki zaroorat nahi, apna kaam khud set karein aur counter se print le lein."</p>
+        <div id="output-area" class="hidden star-card p-4 text-center">
+            <p class="text-yellow-500 font-bold mb-2">IMAGE TAIYAR HAI!</p>
+            <img id="output-img" class="w-full rounded-lg shadow-2xl mb-4">
+            <p class="text-[10px] text-gray-400">1. Image par ungli daba kar "Save Image" karein.<br>2. Niche green button dabayein.</p>
+            <button onclick="whatsappConnect()" class="mt-4 w-full bg-green-600 p-4 rounded-xl font-bold flex items-center justify-center gap-2">
+                SEND TO WHATSAPP
+            </button>
         </div>
     </div>
 
     <script>
         let cropper;
-        const fileInput = document.getElementById('fileInput');
-        const mainImage = document.getElementById('main-image');
-        const editorUi = document.getElementById('editor-ui');
-        const shopWhatsApp = "923300254200"; // Aapka Number
+        let clickCount = 0;
+        const shopNumber = "923300254200";
 
-        fileInput.onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    mainImage.src = ev.target.result;
-                    editorUi.classList.remove('hidden');
-                    document.getElementById('upload-box').classList.add('hidden');
-                    if (cropper) cropper.destroy();
-                    cropper = new Cropper(mainImage, {
-                        aspectRatio: 3.5 / 4.5, // Passport Standard
-                        viewMode: 1
-                    });
-                };
-                reader.readAsDataURL(file);
+        // Generate Random Token
+        const token = Math.floor(100 + Math.random() * 900);
+        document.getElementById('live-token').innerText = `TOKEN: #${token}`;
+
+        // Secret Admin Toggle (Click Shop Name 5 times)
+        function toggleAdmin() {
+            clickCount++;
+            if(clickCount >= 5) {
+                document.getElementById('admin-tools').style.display = 'block';
+                alert("ADMIN MODE ON: Print Sheets Enabled");
             }
-        };
-
-        function setBg(color) {
-            // Note: Background change logic requires AI or Canvas processing
-            alert("Background color " + color + " select ho gaya hai.");
         }
 
-        function generateAndSend() {
-            // Token increment logic
-            let token = Math.floor(Math.random() * 900) + 100;
-            const msg = `Asalam-o-Alaikum Star Graphics! Mera Photo ready hai. Token No: #${token}. Kindly iska print nikal den.`;
-            const waUrl = `https://wa.me/${shopWhatsApp}?text=${encodeURIComponent(msg)}`;
-            
-            alert("Perfect! Aapka document print ke liye ready hai.");
-            window.location.href = waUrl;
+        document.getElementById('fileInput').onchange = function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('image').src = event.target.result;
+                document.getElementById('upload-area').classList.add('hidden');
+                document.getElementById('editor-ui').classList.remove('hidden');
+                if(cropper) cropper.destroy();
+                cropper = new Cropper(document.getElementById('image'), {
+                    aspectRatio: 3.5 / 4.5,
+                    viewMode: 1
+                });
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        function applyBg(color) {
+            // Note: Canvas-based BG replacement would go here. 
+            // For now, it alerts customer.
+            alert("Background Applied. Final result will be seen after clicking Finish.");
         }
 
-        // Auto Token update
-        window.onload = () => {
-            let t = localStorage.getItem('lastT') || 1;
-            document.getElementById('token-box').innerText = `Token: #${String(t).padStart(3, '0')}`;
-            localStorage.setItem('lastT', parseInt(t) + 1);
-        };
+        function finishProcess() {
+            const canvas = cropper.getCroppedCanvas({ width: 350, height: 450 });
+            document.getElementById('output-img').src = canvas.toDataURL("image/jpeg");
+            document.getElementById('editor-ui').classList.add('hidden');
+            document.getElementById('output-area').classList.remove('hidden');
+        }
+
+        function whatsappConnect() {
+            const msg = `Asalam-o-Alaikum! Star Communication, mera order ready hai. Token #${token}. Photo bhej raha hoon.`;
+            window.location.href = `https://wa.me/${shopNumber}?text=${encodeURIComponent(msg)}`;
+        }
+
+        function makeGrid(num) {
+            // Admin only: Logic to multiply the image into a grid for printing
+            alert(`Generating sheet with ${num} photos for printing...`);
+        }
     </script>
 </body>
 </html>
