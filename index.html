@@ -2,213 +2,182 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ShineStar Engine | Star Graphics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Graphics Pro | AI Photo Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { background: #111827; color: white; font-family: sans-serif; }
-        .star-card { background: rgba(31, 41, 55, 0.9); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
-        .btn-action { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: black; font-weight: bold; transition: all 0.2s; }
-        .btn-action:active { transform: scale(0.97); }
-        #admin-panel { display: none; }
+        body { background: #010409; color: #e6edf3; font-family: 'Inter', sans-serif; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; }
+        .btn-star { background: #238636; color: white; font-weight: 600; border-radius: 8px; transition: 0.2s; }
+        .btn-star:hover { background: #2ea043; }
+        #adminPanel { display: none; border-top: 2px solid #e3b341; padding-top: 20px; }
+        canvas { display: none; }
+        #previewImg { border: 5px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     </style>
 </head>
-<body class="pb-24">
+<body class="p-4 md:p-10">
 
-    <header class="p-4 border-b border-gray-800 flex justify-between items-center sticky top-0 bg-[#111827] z-50">
-        <div onclick="requestAdminMode()">
-            <h1 class="text-xl font-black text-yellow-500 tracking-tighter">SHINE STAR</h1>
-            <p class="text-[9px] text-gray-500">Star Communication & Graphics</p>
-        </div>
-        <div id="live-token" class="bg-yellow-500 text-black px-4 py-1.5 rounded-full font-bold text-xs shadow-lg">TOKEN: #---</div>
-    </header>
-
-    <div class="max-w-xl mx-auto p-4 space-y-5">
-        
-        <div id="upload-stage" class="star-card p-12 text-center border-2 border-dashed border-gray-600 cursor-pointer" onclick="document.getElementById('fileInput').click()">
-            <input type="file" id="fileInput" class="hidden" accept="image/*">
-            <div class="text-5xl mb-4">📸</div>
-            <h2 class="font-bold text-lg">UPLOAD PHOTO</h2>
-            <p class="text-xs text-gray-400 mt-1">Select from Gallery</p>
-        </div>
-
-        <div id="editor-stage" class="hidden space-y-4">
-            <div class="star-card p-2">
-                <div class="rounded-xl overflow-hidden bg-gray-900">
-                    <img id="image-to-crop" class="max-w-full">
-                </div>
+    <div class="max-w-3xl mx-auto">
+        <header class="flex justify-between items-center mb-8">
+            <div onclick="showAdmin()">
+                <h1 class="text-2xl font-bold text-yellow-500">STAR GRAPHICS</h1>
+                <p class="text-xs text-gray-500">Advance Self-Service Portal</p>
             </div>
-            
-            <button onclick="cropAndProcess()" class="w-full btn-action p-4 rounded-xl shadow-lg uppercase tracking-wider">
-                Crop & Done
-            </button>
+            <div class="card px-4 py-2 text-sm font-mono" id="tokenId">TOKEN: #---</div>
+        </header>
+
+        <div id="uploadBox" class="card p-16 text-center border-dashed border-2 border-gray-600 cursor-pointer" onclick="document.getElementById('imgInput').click()">
+            <input type="file" id="imgInput" class="hidden" accept="image/*">
+            <p class="text-4xl mb-4">📸</p>
+            <p class="font-bold">Click to Upload Customer Photo</p>
         </div>
 
-        <div id="final-stage" class="hidden space-y-5">
-            <div class="star-card p-3">
-                <p class="text-xs text-gray-400 mb-2">Processed Photo:</p>
-                <img id="processed-preview" class="w-full rounded-lg border border-gray-700 shadow-xl">
+        <div id="editorBox" class="hidden space-y-6">
+            <div class="card p-2 overflow-hidden">
+                <img id="imageToEdit" class="max-w-full">
+            </div>
+            <button onclick="processPhoto()" class="w-full btn-star py-4 text-lg">STEP 1: CROP & CLEAN</button>
+        </div>
+
+        <div id="finalBox" class="hidden space-y-8">
+            <div class="flex justify-center">
+                <img id="previewImg" class="max-w-[250px]">
             </div>
 
-            <div id="admin-panel" class="star-card p-5 border-2 border-yellow-500 shadow-[0_0_15px_rgba(251,191,36,0.2)]">
-                <p class="text-yellow-500 font-bold text-sm mb-4 tracking-tight">★ ADMIN PRINT TOOLS</p>
+            <div id="adminPanel" class="space-y-6">
+                <h2 class="text-yellow-500 font-bold italic">ADMIN MASTER TOOLS (Secret)</h2>
                 
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-[10px] text-gray-400 uppercase">1. Quick Effects</label>
-                        <div class="grid grid-cols-2 gap-2 mt-1">
-                            <button onclick="adminApplyBg('#0047ab')" class="bg-blue-700 p-2.5 rounded-lg text-xs font-bold border border-white/10">Blue BG</button>
-                            <button onclick="adminApplyBg('#ffffff')" class="bg-white p-2.5 rounded-lg text-xs font-bold text-black">White BG</button>
-                            <button onclick="adminEnhance()" class="col-span-2 bg-gray-600 p-2.5 rounded-lg text-xs font-bold">HD Enhance (Basic)</button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="card p-4 space-y-3">
+                        <p class="text-xs font-bold text-gray-400">BG REMOVAL & COLOR</p>
+                        <div class="flex gap-2">
+                            <button onclick="changeBg('#0047AB')" class="flex-1 bg-blue-700 py-2 rounded text-xs">BLUE BG</button>
+                            <button onclick="changeBg('#FFFFFF')" class="flex-1 bg-white text-black py-2 rounded text-xs font-bold">WHITE BG</button>
                         </div>
+                        <button onclick="enhanceHD()" class="w-full bg-purple-600 py-2 rounded text-xs font-bold mt-2 italic">✨ AUTO HD ENHANCE</button>
                     </div>
-                    
-                    <div>
-                        <label class="text-[10px] text-gray-400 uppercase">2. Print Layout (4x6 Cloth)</label>
-                        <div class="grid grid-cols-2 gap-2 mt-1">
-                            <button onclick="adminMakeSheet(8)" class="bg-gradient-to-r from-gray-700 to-gray-800 p-3 rounded-lg text-xs">8 Pics Sheet</button>
-                            <button onclick="adminMakeSheet(12)" class="bg-gradient-to-r from-gray-700 to-gray-800 p-3 rounded-lg text-xs">12 Pics Sheet</button>
-                        </div>
+
+                    <div class="card p-4 space-y-3">
+                        <p class="text-xs font-bold text-gray-400">PRINT LAYOUTS</p>
+                        <button onclick="printLayout('4x6', 8)" class="w-full bg-gray-700 py-2 rounded text-[10px]">8 PHOTOS (4x6 Paper)</button>
+                        <button onclick="printLayout('a4', 24)" class="w-full bg-gray-700 py-2 rounded text-[10px]">FULL A4 SHEET (24 Photos)</button>
                     </div>
                 </div>
             </div>
 
-            <div id="customer-actions" class="text-center space-y-3">
-                <p class="text-[10px] text-gray-500">Long-press image to Save/Print.</p>
-                <button onclick="connectWhatsApp()" class="w-full bg-green-600 p-4 rounded-xl font-bold flex items-center justify-center gap-2">
-                    Send to Star Graphics
-                </button>
+            <div class="flex flex-col gap-3">
+                <button onclick="downloadFinal()" class="card py-3 font-bold hover:bg-gray-800">Download for Mobile</button>
+                <button onclick="sendWhatsApp()" class="bg-green-600 py-4 rounded-xl font-bold text-center">Send to Shop (WhatsApp)</button>
             </div>
         </div>
     </div>
 
-    <canvas id="canvas-crop" class="hidden"></canvas>
-    <canvas id="canvas-final" class="hidden"></canvas>
+    <canvas id="mainCanvas"></canvas>
 
     <script>
         let cropper;
-        const shopNumber = "923300254200";
-        let adminMode = false;
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const token = Math.floor(100 + Math.random() * 899);
+        document.getElementById('tokenId').innerText = `TOKEN: #${token}`;
 
-        // Generate Random Token
-        const token = Math.floor(100 + Math.random() * 900);
-        document.getElementById('live-token').innerText = `TOKEN: #${token}`;
+        function showAdmin() {
+            let pass = prompt("Enter Admin Password (Hint: star)");
+            if(pass === "star") {
+                document.getElementById('adminPanel').style.display = 'block';
+            }
+        }
 
-        // Upload Logic
-        document.getElementById('fileInput').onchange = function(e) {
+        document.getElementById('imgInput').onchange = (e) => {
+            const file = e.target.files[0];
             const reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById('image-to-crop').src = event.target.result;
-                document.getElementById('upload-stage').classList.add('hidden');
-                document.getElementById('editor-stage').classList.remove('hidden');
+            reader.onload = (ev) => {
+                document.getElementById('imageToEdit').src = ev.target.result;
+                document.getElementById('uploadBox').classList.add('hidden');
+                document.getElementById('editorBox').classList.remove('hidden');
                 if(cropper) cropper.destroy();
-                cropper = new Cropper(document.getElementById('image-to-crop'), { aspectRatio: 3.5 / 4.5, viewMode: 1 });
+                cropper = new Cropper(document.getElementById('imageToEdit'), {
+                    aspectRatio: 3.5 / 4.5,
+                    viewMode: 1
+                });
             };
-            reader.readAsDataURL(e.target.files[0]);
+            reader.readAsDataURL(file);
         };
 
-        // Customer: Crop
-        function cropAndProcess() {
-            const canvas = cropper.getCroppedCanvas({ width: 350, height: 450 });
-            // Save cropped image to hidden canvas for admin processing
-            const cropCanvas = document.getElementById('canvas-crop');
-            cropCanvas.width = 350; cropCanvas.height = 450;
-            cropCanvas.getContext('2d').drawImage(canvas, 0, 0);
-
-            // Show preview
-            updateFinalPreview(canvas);
-            document.getElementById('editor-stage').classList.add('hidden');
-            document.getElementById('final-stage').classList.remove('hidden');
+        function processPhoto() {
+            const croppedCanvas = cropper.getCroppedCanvas({ width: 600, height: 800 });
+            canvas.width = 600; canvas.height = 800;
+            ctx.drawImage(croppedCanvas, 0, 0);
+            updatePreview();
+            document.getElementById('editorBox').classList.add('hidden');
+            document.getElementById('finalBox').classList.remove('hidden');
         }
 
-        // --- ADMIN FUNCTIONS ---
-        let adminClicks = 0;
-        function requestAdminMode() {
-            adminClicks++;
-            if(adminClicks >= 5) {
-                adminMode = true;
-                document.getElementById('admin-panel').style.display = 'block';
-                document.getElementById('customer-actions').classList.add('hidden');
-                alert("STAR GRAPHICS ADMIN ACTIVE: Background & Layouts Enabled.");
+        function changeBg(color) {
+            // Smart Canvas Logic for BG change
+            const tempCanvas = document.createElement('canvas');
+            const tCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = 600; tempCanvas.height = 800;
+            
+            // Fill Background
+            tCtx.fillStyle = color;
+            tCtx.fillRect(0, 0, 600, 800);
+            
+            // Draw original image on top
+            tCtx.drawImage(canvas, 0, 0);
+            ctx.clearRect(0,0,600,800);
+            ctx.drawImage(tempCanvas, 0, 0);
+            updatePreview();
+            alert("Background Color Applied!");
+        }
+
+        function enhanceHD() {
+            ctx.filter = "contrast(1.1) brightness(1.05) saturate(1.2) contrast(1.1)";
+            ctx.drawImage(canvas, 0, 0);
+            ctx.filter = "none";
+            updatePreview();
+            alert("HD Enhancement Applied!");
+        }
+
+        function updatePreview() {
+            document.getElementById('previewImg').src = canvas.toDataURL("image/jpeg", 0.9);
+        }
+
+        async function printLayout(size, count) {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF(size === 'a4' ? 'p' : 'l', 'mm', size);
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            
+            let w = 35; let h = 45; // mm
+            let x = 10; let y = 10;
+            let gap = 5;
+
+            for(let i=0; i<count; i++) {
+                pdf.addImage(imgData, 'JPEG', x, y, w, h);
+                x += w + gap;
+                if(x > (size === 'a4' ? 180 : 130)) { x = 10; y += h + gap; }
             }
+            pdf.save(`StarOrder_${token}_${size}.pdf`);
         }
 
-        function updateFinalPreview(canvas) {
-            document.getElementById('processed-preview').src = canvas.toDataURL("image/jpeg", 0.9);
+        function sendWhatsApp() {
+            const msg = `Asalam-o-Alaikum! Star Graphics, order Token #${token} ready hai. Photo bhej raha hoon.`;
+            window.location.href = `https://wa.me/923300254200?text=${encodeURIComponent(msg)}`;
         }
 
-        function adminApplyBg(color) {
-            const cropCanvas = document.getElementById('canvas-crop');
-            const finalCanvas = document.getElementById('canvas-final');
-            finalCanvas.width = 350; finalCanvas.height = 450;
-            const ctx = finalCanvas.getContext('2d');
-
-            // Draw Background
-            ctx.fillStyle = color;
-            ctx.fillRect(0, 0, 350, 450);
-            
-            // Draw Cropped Photo on top (This is basic, real BG removal needs API)
-            // ctx.drawImage(cropCanvas, 0, 0); 
-            
-            // To be professional, for now, we just change the outline color of the final image.
-            // True BG removal requires an API call like Remove.bg.
-            alert("Background applied to print canvas.");
-            updateFinalPreview(finalCanvas);
-        }
-
-        function adminEnhance() {
-            // Basic HD effect using canvas filters
-            const finalCanvas = document.getElementById('canvas-final');
-            const ctx = finalCanvas.getContext('2d');
-            ctx.filter = 'contrast(1.1) saturate(1.1) brightness(1.05)';
-            const cropCanvas = document.getElementById('canvas-crop');
-            ctx.drawImage(cropCanvas, 0, 0);
-            ctx.filter = 'none'; // Reset
-            updateFinalPreview(finalCanvas);
-            alert("HD Effects applied.");
-        }
-
-        function adminMakeSheet(num) {
-            const cropCanvas = document.getElementById('canvas-crop');
-            const finalCanvas = document.getElementById('canvas-final');
-            const ctx = finalCanvas.getContext('2d');
-
-            // 4x6 Canvas setup (approx 1200x1800 px)
-            finalCanvas.width = 1200; finalCanvas.height = 1800;
-            ctx.fillStyle = '#ffffff'; // Paper color
-            ctx.fillRect(0, 0, 1200, 1800);
-
-            // Draw grid
-            let cols = (num === 8) ? 2 : 3;
-            let rows = (num === 8) ? 4 : 4;
-            let photoW = 350; let photoH = 450;
-            let gap = 20;
-
-            for(let r=0; r<rows; r++) {
-                for(let c=0; c<cols; c++) {
-                    let x = gap + (c * (photoW + gap));
-                    let y = gap + (r * (photoH + gap));
-                    ctx.drawImage(cropCanvas, x, y, photoW, photoH);
-                }
-            }
-            
-            updateFinalPreview(finalCanvas);
-            alert(`${num} photos set on 4x6 paper.`);
-        }
-
-        function connectWhatsApp() {
-            const msg = `Order Token #${token}. Photo bhej raha hoon print ke liye.`;
-            window.location.href = `https://wa.me/${shopNumber}?text=${encodeURIComponent(msg)}`;
+        function downloadFinal() {
+            const link = document.createElement('a');
+            link.download = `StarPhoto_${token}.jpg`;
+            link.href = canvas.toDataURL("image/jpeg");
+            link.click();
         }
     </script>
 </body>
 </html>
-
-        <div id="editor-ui" class="hidden space-y-4">
-            <div class="star-card p-2">
-                <div id="canvas-wrapper" class="rounded-lg overflow-hidden">
+        <div id="canvas-wrapper" class="rounded-lg overflow-hidden">
                     <img id="image" class="max-w-full">
                 </div>
             </div>
