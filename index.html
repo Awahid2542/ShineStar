@@ -3,171 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Star Graphics Ultra | ShineStar Engine</title>
+    <title>SHINESTAR | Professional Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { background: #020617; color: white; font-family: sans-serif; overflow-x: hidden; }
+        body { background: #020617; color: white; font-family: sans-serif; }
         .admin-panel { display: none; }
-        .glass { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
         canvas { display: none; }
-        #preview { border: 6px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.7); max-width: 90%; height: auto; margin: 0 auto; }
-        .btn-gold { background: linear-gradient(135deg, #facc15 0%, #eab308 100%); color: black; font-weight: 900; }
+        #preview { border: 5px solid white; box-shadow: 0 0 25px rgba(0,0,0,0.6); max-width: 100%; height: auto; }
+        .btn-gold { background: linear-gradient(135deg, #facc15 0%, #eab308 100%); color: #000; font-weight: 800; }
     </style>
 </head>
 <body class="pb-10">
 
-    <header class="p-4 glass sticky top-0 z-50 flex justify-between items-center border-b border-yellow-500/50">
-        <div onclick="unlock()">
-            <h1 class="text-xl font-black text-yellow-500 italic uppercase">STAR GRAPHICS</h1>
-            <p class="text-[9px] text-gray-400 tracking-widest">ADVANCE PRINTING HUB</p>
+    <header class="p-4 glass sticky top-0 z-50 flex justify-between items-center border-b border-yellow-500">
+        <div onclick="unlockAdmin()">
+            <h1 class="text-2xl font-black text-yellow-500 italic uppercase">SHINESTAR</h1>
+            <p class="text-[9px] text-gray-400 tracking-widest">ADVANCE STUDIO ENGINE</p>
         </div>
-        <div id="tk" class="bg-yellow-500 text-black px-3 py-1 rounded-lg font-black text-xs shadow-inner">ID: #---</div>
+        <div id="tokenUI" class="bg-yellow-500 text-black px-3 py-1 rounded font-bold text-xs uppercase">TOKEN: #---</div>
     </header>
 
-    <div class="max-w-xl mx-auto p-4 mt-4 space-y-6">
-        <div id="s1" class="glass p-12 text-center rounded-[2rem] border-2 border-dashed border-gray-700 active:scale-95 transition" onclick="document.getElementById('inp').click()">
-            <input type="file" id="inp" class="hidden" accept="image/*">
+    <div class="max-w-xl mx-auto p-4 space-y-6">
+        <div id="box-1" class="glass p-12 text-center rounded-[2.5rem] border-2 border-dashed border-gray-700 cursor-pointer" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" class="hidden" accept="image/*">
             <div class="text-6xl mb-4">📸</div>
-            <h2 class="text-lg font-bold uppercase tracking-tight">Upload Customer Photo</h2>
-            <p class="text-xs text-gray-500 mt-2 italic">Passport Size Special Engine</p>
+            <h2 class="text-lg font-bold uppercase">Open Customer Photo</h2>
         </div>
 
-        <div id="s2" class="hidden space-y-4">
+        <div id="box-2" class="hidden space-y-4">
             <div class="glass p-2 rounded-2xl overflow-hidden">
-                <img id="cTar" class="max-w-full">
+                <img id="cropTarget" class="max-w-full">
             </div>
-            <button onclick="doneCrop()" class="w-full btn-gold py-5 rounded-2xl shadow-xl uppercase tracking-tighter text-lg">Apply Crop & Prepare</button>
+            <button onclick="applyCrop()" class="w-full btn-gold py-5 rounded-2xl shadow-xl uppercase tracking-widest">Crop & Start Editing</button>
         </div>
 
-        <div id="s3" class="hidden space-y-6">
+        <div id="box-3" class="hidden space-y-8">
             <div class="text-center space-y-4">
-                <img id="preview" class="rounded">
-                <div class="flex gap-2 justify-center">
-                    <button onclick="rst()" class="text-[10px] bg-red-900/30 px-3 py-1 rounded-full text-red-400">Undo All</button>
+                <img id="preview" class="rounded-lg">
+                <button onclick="resetAll()" class="text-[10px] text-red-400 underline uppercase font-bold">Reset Changes</button>
+            </div>
+
+            <div id="adminPanel" class="admin-panel space-y-6">
+                
+                <div class="glass p-4 rounded-2xl space-y-3">
+                    <p class="text-[10px] text-yellow-500 font-black uppercase tracking-widest">HD Enhance & Lighting</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="applyFilter('brightness(1.15)')" class="bg-gray-800 p-3 rounded-xl text-[10px] font-bold">+ Brightness</button>
+                        <button onclick="applyFilter('contrast(1.25) saturate(1.1)')" class="bg-gray-800 p-3 rounded-xl text-[10px] font-bold italic">✨ AUTO HD ENHANCE</button>
+                    </div>
+                </div>
+
+                <div class="glass p-4 rounded-2xl space-y-3">
+                    <p class="text-[10px] text-blue-400 font-black uppercase tracking-widest">AI Background (Remove.bg)</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="removeBg('#0047AB')" class="bg-blue-700 p-3 rounded-xl text-[10px] font-bold">AI BLUE BG</button>
+                        <button onclick="removeBg('#FFFFFF')" class="bg-white text-black p-3 rounded-xl text-[10px] font-bold">AI WHITE BG</button>
+                    </div>
+                </div>
+
+                <div class="glass p-5 rounded-2xl space-y-4">
+                    <p class="text-[10px] text-green-500 font-black uppercase text-center tracking-widest">Print Layouts (PDF)</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="generatePDF('4x6', 8)" class="bg-gray-700 p-4 rounded-xl text-[11px] font-black border border-gray-600">8 PICS (4x6 PAGE)</button>
+                        <button onclick="generatePDF('a4', 25)" class="bg-gray-700 p-4 rounded-xl text-[11px] font-black border border-gray-600">25 PICS (A4 PAGE)</button>
+                    </div>
                 </div>
             </div>
 
-            <div id="adm" class="admin-panel space-y-5 animate-in slide-in-from-bottom duration-500">
-                <div class="grid grid-cols-1 gap-4">
-                    <div class="glass p-4 rounded-2xl space-y-3 border-l-4 border-blue-500">
-                        <p class="text-[10px] text-blue-400 font-black uppercase">AI Smart Background Removal</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="ai('blue')" class="bg-blue-700 py-3 rounded-xl text-[10px] font-bold shadow-lg">STUDIO BLUE</button>
-                            <button onclick="ai('white')" class="bg-white text-black py-3 rounded-xl text-[10px] font-bold shadow-lg">STUDIO WHITE</button>
-                        </div>
-                    </div>
-
-                    <div class="glass p-4 rounded-2xl space-y-3 border-l-4 border-green-500">
-                        <p class="text-[10px] text-green-400 font-black uppercase tracking-widest text-center">One-Click Print Sheets</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="pnt('4x6')" class="bg-gray-800 p-4 rounded-xl text-[11px] font-black border border-gray-600 active:bg-yellow-500 active:text-black">8 PICS (4x6 PAGE)</button>
-                            <button onclick="pnt('a4')" class="bg-gray-800 p-4 rounded-xl text-[11px] font-black border border-gray-600 active:bg-yellow-500 active:text-black">25 PICS (A4 SHEET)</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <button onclick="wa()" class="w-full bg-green-600 py-4 rounded-2xl font-black shadow-2xl flex items-center justify-center gap-2">
-                🚀 SEND TO WHATSAPP
-            </button>
+            <button onclick="sendWA()" class="w-full bg-green-600 py-5 rounded-2xl font-black shadow-2xl uppercase tracking-widest">Send to Shop</button>
         </div>
     </div>
 
-    <footer class="mt-10 p-6 text-center border-t border-gray-800">
-        <p class="text-yellow-500 font-black text-sm italic">STAR COMMUNICATION & GRAPHICS</p>
-        <p class="text-[10px] text-gray-500 mt-1 uppercase tracking-[4px]">Powered by ShineStar Developer Team</p>
+    <footer class="mt-12 p-8 text-center border-t border-gray-800">
+        <p class="text-xs text-gray-500 uppercase tracking-[3px]">Powered by</p>
+        <p class="text-yellow-500 font-black text-sm mt-1 uppercase italic">Star Communication and Graphics Team</p>
     </footer>
 
-    <canvas id="mc"></canvas>
-    <canvas id="bc"></canvas>
+    <canvas id="mainCanvas"></canvas>
+    <canvas id="bufferCanvas"></canvas>
 
     <script>
-        let crop;
-        const mCv = document.getElementById('mc');
-        const bCv = document.getElementById('bc');
-        const mX = mCv.getContext('2d');
-        const bX = bCv.getContext('2d');
-        const KEY = "eiqj8NTavEWAENUCnWGx5LWc"; // Aapki API Key yahan save hai
-        const tkn = Math.floor(100 + Math.random() * 899);
-        document.getElementById('tk').innerText = `ID: #${tkn}`;
+        let cropper;
+        const mc = document.getElementById('mainCanvas');
+        const bc = document.getElementById('bufferCanvas');
+        const mCtx = mc.getContext('2d');
+        const bCtx = bc.getContext('2d');
+        const API_KEY = "eiqj8NTavEWAENUCnWGx5LWc"; // Key Saved
+        
+        const token = Math.floor(100 + Math.random() * 899);
+        document.getElementById('tokenUI').innerText = `TOKEN: #${token}`;
 
-        function unlock() {
+        function unlockAdmin() {
             if(prompt("Admin Key:") === "star") {
-                document.getElementById('adm').style.display = 'block';
-                alert("Master Engine Unlocked");
+                document.getElementById('adminPanel').style.display = 'block';
+                alert("Master Tools Unlocked!");
             }
         }
 
-        document.getElementById('inp').onchange = (e) => {
+        document.getElementById('fileInput').onchange = (e) => {
             const r = new FileReader();
             r.onload = (ev) => {
-                document.getElementById('cTar').src = ev.target.result;
-                document.getElementById('s1').classList.add('hidden');
-                document.getElementById('s2').classList.remove('hidden');
-                if(crop) crop.destroy();
-                crop = new Cropper(document.getElementById('cTar'), { aspectRatio: 3.5/4.5, viewMode: 1 });
+                document.getElementById('cropTarget').src = ev.target.result;
+                document.getElementById('box-1').classList.add('hidden');
+                document.getElementById('box-2').classList.remove('hidden');
+                if(cropper) cropper.destroy();
+                cropper = new Cropper(document.getElementById('cropTarget'), { aspectRatio: 3.5/4.5, viewMode: 1 });
             };
             r.readAsDataURL(e.target.files[0]);
         };
 
-        function doneCrop() {
-            const c = crop.getCroppedCanvas({ width: 600, height: 800 });
-            mCv.width = 600; mCv.height = 800;
-            bCv.width = 600; bCv.height = 800;
-            mX.drawImage(c, 0, 0);
-            bX.drawImage(c, 0, 0);
-            upd();
-            document.getElementById('s2').classList.add('hidden');
-            document.getElementById('s3').classList.remove('hidden');
+        function applyCrop() {
+            const c = cropper.getCroppedCanvas({ width: 600, height: 800 });
+            mc.width = 600; mc.height = 800;
+            bc.width = 600; bc.height = 800;
+            mCtx.drawImage(c, 0, 0);
+            bCtx.drawImage(c, 0, 0);
+            refresh();
+            document.getElementById('box-2').classList.add('hidden');
+            document.getElementById('box-3').classList.remove('hidden');
         }
 
-        async function ai(clr) {
-            alert("AI Background Removal in progress...");
-            const blob = await new Promise(res => mCv.toBlob(res, 'image/png'));
+        function applyFilter(f) {
+            mCtx.filter = f;
+            mCtx.drawImage(mc, 0, 0);
+            mCtx.filter = "none";
+            refresh();
+        }
+
+        function resetAll() {
+            mCtx.clearRect(0,0,600,800);
+            mCtx.drawImage(bc, 0, 0);
+            refresh();
+        }
+
+        async function removeBg(color) {
+            alert("AI is removing background... Please wait.");
+            const blob = await new Promise(res => mc.toBlob(res, 'image/png'));
             const fd = new FormData();
             fd.append('image_file', blob);
-            fd.append('bg_color', clr === 'blue' ? '#0047AB' : '#FFFFFF');
+            fd.append('bg_color', color);
 
             const res = await fetch('https://api.remove.bg/v1.0/removebg', {
                 method: 'POST',
-                headers: { 'X-Api-Key': KEY },
+                headers: { 'X-Api-Key': API_KEY },
                 body: fd
             });
 
             if(res.ok) {
                 const b = await res.blob();
                 const i = new Image();
-                i.onload = () => { mX.clearRect(0,0,600,800); mX.drawImage(i, 0,0,600,800); upd(); };
+                i.onload = () => { mCtx.clearRect(0,0,600,800); mCtx.drawImage(i, 0,0,600,800); refresh(); };
                 i.src = URL.createObjectURL(b);
-            } else { alert("API Error! Key check karein ya credits khatam hain."); }
+            } else { alert("API Error! Please check credits."); }
         }
 
-        function upd() { document.getElementById('preview').src = mCv.toDataURL("image/jpeg", 0.95); }
-        function rst() { mX.clearRect(0,0,600,800); mX.drawImage(bCv, 0,0); upd(); }
+        function refresh() {
+            document.getElementById('preview').src = mc.toDataURL("image/jpeg", 0.95);
+        }
 
-        function pnt(sz) {
+        function generatePDF(size, count) {
             const { jsPDF } = window.jspdf;
-            // 4x6 ke liye hamesha landscape (leta hua) mode zarori hai mobile par
-            const pdf = new jsPDF(sz === 'a4' ? 'p' : 'l', 'mm', sz);
-            const img = mCv.toDataURL('image/jpeg', 1.0);
+            // 4x6 ke liye 'landscape' aur coordinates fix kar diye hain
+            const orientation = (size === 'a4') ? 'p' : 'l';
+            const pdf = new jsPDF(orientation, 'mm', size);
+            
+            const imgData = mc.toDataURL('image/jpeg', 1.0);
             
             let w = 35, h = 45, x = 10, y = 10, gap = 5;
-            let count = (sz === '4x6') ? 8 : 25;
-            let limitX = (sz === 'a4') ? 180 : 130;
+            let maxX = (size === 'a4') ? 180 : 130;
 
             for(let i=0; i<count; i++) {
-                pdf.addImage(img, 'JPEG', x, y, w, h);
+                pdf.addImage(imgData, 'JPEG', x, y, w, h);
                 x += w + gap;
-                if(x > limitX) { x = 10; y += h + gap; }
+                if(x > maxX) { x = 10; y += h + gap; }
             }
-            pdf.save(`STAR_PRINT_${tkn}_${sz}.pdf`);
-            alert("Download Started!");
+            pdf.save(`SHINESTAR_PRINT_${token}_${size}.pdf`);
+            alert("Your " + size + " PDF is Ready!");
         }
 
-        function wa() { window.location.href = `https://wa.me/923300254200?text=Star Graphics Order ID: ${tkn}`; }
+        function sendWA() {
+            window.location.href = `https://wa.me/923300254200?text=Shinestar Order Token: #${token}`;
+        }
     </script>
 </body>
 </html>
